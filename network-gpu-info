@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for host in $*; do
+	echo $host
+	ssh $host nvidia-smi --query-gpu=utilization.gpu --format=csv | grep -v 'utilization.gpu'
+done
