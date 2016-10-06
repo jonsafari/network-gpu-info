@@ -10,7 +10,7 @@ if [ -f $hosts ]; then
 	while read host; do
 		case $host in ''|\#*) continue;; esac  # skip commented out lines
 		echo "$host"
-		ssh $host $cmd
+		ssh -n $host $cmd
 	done < $hosts
 else
 	# Otherwise assume command-line arguments are a list of hosts
