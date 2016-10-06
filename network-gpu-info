@@ -9,11 +9,13 @@ visualize() {
 	card_info=$*
 	for card in $card_info; do
 		printf " %3s%%: [" $card
+		# Cut value in half for shorter visualized line
+		card=$(($card / 2))
 		for tick in $(seq 0 1 $card); do
 			printf "|"
 		done
 		# Complementing spaces
-		for tick in $(seq $card 1 100); do
+		for tick in $(seq $card 1 50); do
 			printf " "
 		done
 		printf "]\n"
