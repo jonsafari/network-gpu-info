@@ -24,6 +24,6 @@ The command-line argument can alternatively be a regular text file, consisting
 of one entry per line.  For example:
 
     123.456.789.012
-	user@remote1
-	remote2
-	another@10.0.0.5
+    user@remote1
+    remote2
+    another@10.0.0.5
