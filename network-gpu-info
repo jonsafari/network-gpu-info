@@ -9,8 +9,9 @@ visualize() {
 	card_info=$*
 	# Is the output a terminal?
 	if test -t 1; then
+		card_num=0
 		for card in $card_info; do
-			printf " %3s%%: [" $card
+			printf " %2s %3s%%: [" $card_num $card
 			# Cut value in half for shorter visualized line
 			card=$(($card / 2))
 			tput bold
@@ -30,6 +31,7 @@ visualize() {
 				printf " "
 			done
 			printf "]\n"
+			card_num=$((card_num+1))
 		done
 		printf "\n"
 	else
