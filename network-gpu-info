@@ -44,7 +44,13 @@ visualize() {
 if [ -f $hosts ]; then
 	while read host; do
 		case $host in ''|\#*) continue;; esac  # skip commented out lines
-		echo "$host:"
+		if test -t 1; then # Is output a terminal, if so embolden hostname
+			tput bold
+			echo "$host:"
+			tput sgr0 # Reset it to normal colors
+		else
+			echo "$host:"
+		fi
 		card_info=$(ssh -n $host $cmd)
 		visualize "$card_info"
 	done < $hosts
