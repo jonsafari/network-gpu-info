@@ -36,9 +36,12 @@ of one entry per line.  For example:
 A line can be commented-out by prepending it with `#`.
 
 
+## Example
+![Screenshot](img/screenshot.png?raw=true)
+
+
 ## Todo
 - Concurrent queries
-- Pretty printing output
 - Sorting output by utilization
 - OpenCL support
 
