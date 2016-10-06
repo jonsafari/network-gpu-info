@@ -5,13 +5,13 @@ Display GPU utilization for all hosts in your network.
 
 ## Prerequisites
 First setup SSH keys to all computers that you want GPU info about:
-- One time, from source computer:
+1. One time, from source computer:
 
-      ssh-keygen -b 8192 -t rsa
+       ssh-keygen -b 8192 -t rsa
 
-- For every remote computer, from your source computer:
+2. For every remote computer, from your source computer:
 
-      ssh-copy-id  yourusername@123.456.789.012
+       ssh-copy-id  yourusername@123.456.789.012
 
 
 ## Usage
