@@ -24,13 +24,16 @@ If your username is the same between your source and your target computers, you
 don't need to prepend this to your remote host's address.  This info is passed
 directly to the `ssh` command, so if it's valid when you use `ssh`, it will be
 valid here.
+
 The command-line argument can alternatively be a regular text file, consisting
 of one entry per line.  For example:
 
     123.456.789.012
-    user@remote1
+    # user@remote1
     remote2
     another@10.0.0.5
+
+A line can be commented-out by prepending it with `#`.
 
 
 ## Todo
