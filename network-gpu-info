@@ -7,20 +7,34 @@ cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 
 visualize() {
 	card_info=$*
-	for card in $card_info; do
-		printf " %3s%%: [" $card
-		# Cut value in half for shorter visualized line
-		card=$(($card / 2))
-		for tick in $(seq 0 1 $card); do
-			printf "|"
+	# Is the output a terminal?
+	if test -t 1; then
+		for card in $card_info; do
+			printf " %3s%%: [" $card
+			# Cut value in half for shorter visualized line
+			card=$(($card / 2))
+			for tick in $(seq 0 1 $card); do
+				if [ $tick -lt 17 ]; then # Lower third is green
+					tput setaf 10
+				elif [ $tick -lt 34 ]; then # Middle third is orange
+					tput setaf 68
+				else # Upper third is red
+					tput setaf 9
+				fi
+				printf "|"
+			done
+			tput sgr0 # Reset it to normal colors
+			# Complementing spaces
+			for tick in $(seq $card 1 50); do
+				printf " "
+			done
+			printf "]\n"
 		done
-		# Complementing spaces
-		for tick in $(seq $card 1 50); do
-			printf " "
-		done
-		printf "]\n"
-	done
-	printf "\n"
+		printf "\n"
+	else
+		# Output is not a terminal
+		echo "$card_info\n"
+	fi
 }
 
 # If command-line argument is a regular file, process each line in it
