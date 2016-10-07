@@ -2,13 +2,76 @@
 # By Jon Dehdari, 2016
 # See README.md for details
 
-hosts=$*
+set -o nounset # Don't allow unused variables
+
+usage='Usage:
+   ./network-gpu-info  [options]  hosts.txt
+   ./network-gpu-info  [options]  [[user@]remote1 [[user@]remote2 [...]]]
+
+Options:
+  -l, --loop [n]    Continuously display results every n seconds (default: 5)
+  -h, --help        Show this help info
+'
+
+# Defaults
 cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+loop=''
+num_regex='^[0-9]+$'
+
+### Process command-line args
+### If not enough arguments, die
+if [ $# -lt 1 ]; then
+	echo "$usage"
+	exit
+fi
+
+while [ $# -ge 1 ]; do
+    case $1 in
+    -l | --loop)
+		case $2 in  # is the next argument a number?
+			''|[0-9]*)
+				# If so, take next arg as value of $loop
+				loop=$2
+				shift 2;;
+			*)
+				# Next arg is not a number, so use default
+				loop=5
+				shift;;
+		esac
+        ;;
+    -h | --help)
+        echo "$usage"
+        exit
+        ;;
+    -*)
+        echo 'Warning: invalid flag'
+        echo "$usage"
+        shift
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+hosts=$*
+
+
+# Is the output a terminal?
+is_terminal=''
+if test -t 1; then
+	export is_terminal=1
+fi
 
 visualize() {
-	card_info=$*
-	# Is the output a terminal?
-	if test -t 1; then
+	host=$1
+	card_info=$2
+	if [ $is_terminal ]; then
+
+		# Print host
+		tput bold
+		echo "$host:"
+		tput sgr0 # Reset it to normal colors
+
 		card_num=0
 		for card in $card_info; do
 			printf " %2s %3s%%: [" $card_num $card
@@ -17,10 +80,10 @@ visualize() {
 			tput bold
 			tput setaf 2  # Lower third is green
 			for tick in $(seq 0 1 $card); do
-				if [ $tick -eq 17 ]; then # Middle third is orange
-					tput setaf 3
+				if [ $tick -eq 17 ]; then # Middle third is yellow
+					tput setaf 3 # Yellow
 				elif [ $tick -eq 34 ]; then # Upper third is red
-					tput setaf 1
+					tput setaf 1 # Red
 				fi
 				printf "|"
 			done
@@ -35,29 +98,40 @@ visualize() {
 		printf "\n"
 	else
 		# Output is not a terminal
-		echo "$card_info\n"
+		echo "$host:"
+		printf "$card_info\n\n"
 	fi
 }
 
-# If command-line argument is a regular file, process each line in it
-if [ -f "$hosts" ]; then
-	while read host; do
-		case $host in ''|\#*) continue;; esac  # skip commented out lines
-		if test -t 1; then # Is output a terminal, if so embolden hostname
-			tput bold
-			echo "$host:"
-			tput sgr0 # Reset it to normal colors
-		else
-			echo "$host:"
-		fi
-		card_info=$(ssh -n $host $cmd)
-		visualize "$card_info"
-	done < $hosts
-else
-	# Otherwise assume command-line arguments are a list of hosts
-	for host in $hosts; do
-		echo "$host"
-		card_info=$(ssh $host $cmd)
-		visualize "$card_info"
-	done
-fi
+
+process_hosts() {
+	hosts=$*
+
+	# If command-line argument is a regular file, process each line in it
+	if [ -f "$hosts" ]; then
+		while read host; do
+			case $host in ''|\#*) continue;; esac  # skip commented out lines
+			card_info=$(ssh -n $host $cmd)
+			visualize "$host" "$card_info"
+		done < $hosts
+	else
+		# Otherwise assume command-line arguments are a list of hosts
+		for host in $hosts; do
+			card_info=$(ssh -n $host $cmd)
+			visualize "$host" "$card_info"
+		done
+	fi
+}
+
+# Main
+# Do the following once (in the absence of a do-while loop in sh)
+process_hosts $hosts
+
+while [ $loop ]; do
+	tput setaf 8 # Grey
+	echo 'ctrl-c to quit' >&2
+	tput sgr0 # Reset it to normal colors
+	sleep $loop
+	clear
+	process_hosts $hosts
+done
