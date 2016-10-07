@@ -9,13 +9,15 @@ usage='Usage:
    ./network-gpu-info  [options]  [[user@]remote1 [[user@]remote2 [...]]]
 
 Options:
-  -l, --loop [n]    Continuously display results every n seconds (default: 5)
-  -h, --help        Show this help info
+  -l, --loop [n]     Continuously display results every n seconds (default: 5)
+      --timeout <n>  Set SSH timeout to n seconds (default: 2)
+  -h, --help         Show this help info
 '
 
 # Defaults
 cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 loop=''
+timeout=2
 num_regex='^[0-9]+$'
 
 ### Process command-line args
@@ -39,6 +41,10 @@ while [ $# -ge 1 ]; do
 				shift;;
 		esac
         ;;
+	--timeout)
+		timeout=$2
+		shift 2
+		;;
     -h | --help)
         echo "$usage"
         exit
@@ -111,13 +117,13 @@ process_hosts() {
 	if [ -f "$hosts" ]; then
 		while read host; do
 			case $host in ''|\#*) continue;; esac  # skip commented out lines
-			card_info=$(ssh -n $host $cmd)
+			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
 			visualize "$host" "$card_info"
 		done < $hosts
 	else
 		# Otherwise assume command-line arguments are a list of hosts
 		for host in $hosts; do
-			card_info=$(ssh -n $host $cmd)
+			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
 			visualize "$host" "$card_info"
 		done
 	fi
