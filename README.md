@@ -4,7 +4,7 @@ Display GPU utilization for all hosts in your network.
 
 
 ## Prerequisites
-First setup SSH keys to all computers that you want GPU info about:
+First setup SSH keys to all computers that you want GPU info about.  This is a good idea in general.
 
 1. Once, from source computer:
 
@@ -28,7 +28,7 @@ directly to the `ssh` command, so if it's valid when you use `ssh`, it will be
 valid here.
 
 The command-line argument can alternatively be a regular text file, consisting
-of one entry per line.  For example:
+of one entry per line.  For example, a `hosts.txt` file could look like:
 
     123.456.789.012
     # user@remote1
