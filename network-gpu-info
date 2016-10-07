@@ -40,7 +40,7 @@ visualize() {
 }
 
 # If command-line argument is a regular file, process each line in it
-if [ -f $hosts ]; then
+if [ -f "$hosts" ]; then
 	while read host; do
 		case $host in ''|\#*) continue;; esac  # skip commented out lines
 		if test -t 1; then # Is output a terminal, if so embolden hostname
