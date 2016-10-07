@@ -15,12 +15,11 @@ visualize() {
 			# Cut value in half for shorter visualized line
 			card=$(($card / 2))
 			tput bold
+			tput setaf 2  # Lower third is green
 			for tick in $(seq 0 1 $card); do
-				if [ $tick -lt 17 ]; then # Lower third is green
-					tput setaf 2
-				elif [ $tick -lt 34 ]; then # Middle third is orange
+				if [ $tick -eq 17 ]; then # Middle third is orange
 					tput setaf 3
-				else # Upper third is red
+				elif [ $tick -eq 34 ]; then # Upper third is red
 					tput setaf 1
 				fi
 				printf "|"
