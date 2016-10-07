@@ -9,6 +9,8 @@ First setup SSH keys to all computers that you want GPU info about:
 1. Once, from source computer:
 
         ssh-keygen -b 8192 -t rsa
+        
+   Use an empty passphrase.
 
 2. For every remote computer, from your source computer:
 
