@@ -3,6 +3,10 @@
 Display GPU utilization for all hosts in your network.
 
 
+## Example
+![Screenshot](img/screenshot.png?raw=true)
+
+
 ## Prerequisites
 First setup SSH keys to all computers that you want GPU info about.  This is a good idea in general.
 
@@ -19,8 +23,8 @@ First setup SSH keys to all computers that you want GPU info about.  This is a g
 
 ## Usage
 
-    ./network-gpu-info [[user@]remote1 [[user@]remote2 [...]]]
-    ./network-gpu-info hosts.txt
+    ./network-gpu-info [options] [[user@]remote1 [[user@]remote2 [...]]]
+    ./network-gpu-info [options] hosts.txt
 
 If your username is the same between your source and your target computers, you
 don't need to prepend this to your remote host's address.  This info is passed
@@ -37,10 +41,10 @@ of one entry per line.  For example, a `hosts.txt` file could look like:
 
 A line can be commented-out by prepending it with `#`.
 
+You can loop continuously using the `--loop` command-line argument.  The default
+is to refresh every 5 seconds.  You can change this by adding an integer: `--loop 10` .
 
-## Example
-![Screenshot](img/screenshot.png?raw=true)
-
+There is a `--timeout` option to change the default connection timeout (2 seconds).
 
 ## Todo
 - Concurrent queries
