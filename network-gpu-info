@@ -117,13 +117,21 @@ process_hosts() {
 	if [ -f "$hosts" ]; then
 		while read host; do
 			case $host in ''|\#*) continue;; esac  # skip commented out lines
-			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
+			if [ $host = 'localhost' ]; then # Don't bother with SSH for localhost
+				card_info=$($cmd)
+			else
+				card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
+			fi
 			visualize "$host" "$card_info"
 		done < $hosts
 	else
 		# Otherwise assume command-line arguments are a list of hosts
 		for host in $hosts; do
-			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
+			if [ $host = 'localhost' ]; then # Don't bother with SSH for localhost
+				card_info=$($cmd)
+			else
+				card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
+			fi
 			visualize "$host" "$card_info"
 		done
 	fi

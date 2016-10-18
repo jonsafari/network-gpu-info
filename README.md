@@ -37,14 +37,16 @@ of one entry per line.  For example, a `hosts.txt` file could look like:
     123.456.789.012
     # user@remote1
     remote2
+    localhost
     another@10.0.0.5
 
-A line can be commented-out by prepending it with `#`.
+A line can be commented-out by prepending it with `#`.  You can specify the current,
+local machine using the entry `localhost`.
 
-You can loop continuously using the `--loop` command-line argument.  The default
+You can loop continuously using the **`--loop`** command-line argument.  The default
 is to refresh every 5 seconds.  You can change this by adding an integer: `--loop 10` .
 
-There is a `--timeout` option to change the default connection timeout (2 seconds).
+There is a **`--timeout`** option to change the default connection timeout (2 seconds).
 
 ## Todo
 - Concurrent queries
