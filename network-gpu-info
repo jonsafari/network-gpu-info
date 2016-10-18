@@ -68,6 +68,17 @@ if test -t 1; then
 	export is_terminal=1
 fi
 
+# Portable hash table in bourne shell
+# Bash 4 natively supports hash tables
+# https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
+hput() {
+	eval "$1""$2"='$3'
+}
+
+hget() {
+	eval echo '${'"$1$2"'#hash}'
+}
+
 visualize() {
 	host=$1
 	card_info=$2
