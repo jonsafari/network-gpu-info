@@ -68,6 +68,18 @@ if test -t 1; then
 	export is_terminal=1
 fi
 
+
+hostname_escape() {
+	# We're using a Posix-shell compliant hash table based on variables, so we
+	# need to escape '@' and '.' in hostnames.
+	sed 's/\./__dot__/g; s/@/__at__/g'
+}
+
+hostname_unescape() {
+	# See docs in hostname_escape()
+	sed 's/__dot__/./g; s/__at__/@/g'
+}
+
 # Portable hash table in bourne shell
 # Bash 4 natively supports hash tables
 # https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
