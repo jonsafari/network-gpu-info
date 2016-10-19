@@ -84,52 +84,61 @@ hostname_unescape() {
 # Bash 4 natively supports hash tables
 # https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
 hput() {
-	eval "$1""$2"='$3'
+	escaped_hostname=$(echo $2 | hostname_escape )
+	eval "$1"__"$escaped_hostname"='$3'
 }
 
 hget() {
-	eval echo '${'"$1$2"'#hash}'
+	escaped_hostname=$(echo $2 | hostname_escape)
+	eval echo '${'"$1__$escaped_hostname"'#hash}'
 }
 
 visualize() {
-	host=$1
-	card_info=$2
-	if [ $is_terminal ]; then
+	stats=$1
+	shift
+	hosts=$*
+	#host=$1
+	#card_info=$2
 
-		# Print host
-		tput bold
-		echo "$host:"
-		tput sgr0 # Reset it to normal colors
-
-		card_num=0
-		for card in $card_info; do
-			printf " %2s %3s%%: [" $card_num $card
-			# Cut value in half for shorter visualized line
-			card=$(($card / 2))
+	for host in $hosts; do
+		card_info=$(hget $stats $host)
+		if [ $is_terminal ]; then
+	
+			# Print host
 			tput bold
-			tput setaf 2  # Lower third is green
-			for tick in $(seq 0 1 $card); do
-				if [ $tick -eq 17 ]; then # Middle third is yellow
-					tput setaf 3 # Yellow
-				elif [ $tick -eq 34 ]; then # Upper third is red
-					tput setaf 1 # Red
-				fi
-				printf "|"
-			done
+			echo "$host:"
 			tput sgr0 # Reset it to normal colors
-			# Complementing spaces
-			for tick in $(seq $card 1 50); do
-				printf " "
+	
+			card_num=0
+			for card in $card_info; do
+				printf " %2s %3s%%: [" $card_num $card
+				# Cut value in half for shorter visualized line
+				card=$(($card / 2))
+				tput bold
+				tput setaf 2  # Lower third is green
+				for tick in $(seq 0 1 $card); do
+					if [ $tick -eq 17 ]; then # Middle third is yellow
+						tput setaf 3 # Yellow
+					elif [ $tick -eq 34 ]; then # Upper third is red
+						tput setaf 1 # Red
+					fi
+					printf "|"
+				done
+				tput sgr0 # Reset it to normal colors
+				# Complementing spaces
+				for tick in $(seq $card 1 50); do
+					printf " "
+				done
+				printf "]\n"
+				card_num=$((card_num+1))
 			done
-			printf "]\n"
-			card_num=$((card_num+1))
-		done
-		printf "\n"
-	else
-		# Output is not a terminal
-		echo "$host:"
-		printf "$card_info\n\n"
-	fi
+			printf "\n"
+		else
+			# Output is not a terminal
+			echo "$host:"
+			printf "$card_info\n\n"
+		fi
+	done
 }
 
 
@@ -138,6 +147,7 @@ visualize() {
 get_hosts() {
 	hosts_arg=$*
 	hosts=''
+	host_id=1
 
 	# If command-line argument is a regular file, process each line in it
 	if [ -f "$hosts_arg" ]; then
@@ -148,12 +158,14 @@ get_hosts() {
 		printf "$hosts"
 	else
 		# Otherwise assume command-line arguments are a list of hosts
-		printf $hosts_arg
+		printf "$hosts_arg"
 	fi
 }
 
 
 get_stats() {
+	stats=$1
+	shift
 	hosts=$*
 
 	for host in $hosts; do
@@ -162,8 +174,8 @@ get_stats() {
 		else
 			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
 		fi
-		visualize "$host" "$card_info"
-		#hput stats "$host" "$card_info"
+		#visualize "$host" "$card_info"
+		hput "$stats" "$host" "$card_info"
 	done
 }
 
@@ -171,7 +183,8 @@ get_stats() {
 # Main
 hosts=$(get_hosts $hosts_arg)
 # Do the following once (in the absence of a do-while loop in sh)
-get_stats $hosts
+get_stats stats $hosts
+visualize stats $hosts
 
 while [ $loop ]; do
 	tput setaf 8 # Grey
@@ -179,5 +192,6 @@ while [ $loop ]; do
 	tput sgr0 # Reset it to normal colors
 	sleep $loop
 	clear
-	get_stats $hosts
+	get_stats stats $hosts
+	visualize stats $hosts
 done
