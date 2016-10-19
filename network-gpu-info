@@ -96,8 +96,10 @@ hput() {
 }
 
 hget() {
-	escaped_hostname=$(echo $2 | hostname_escape)
-	eval echo '${'"$1__$escaped_hostname"'#hash}'
+	escaped_key=${1}__$(echo $2 | hostname_escape)
+	if [ ! -z ${escaped_key+x} ]; then  # ensure that variable is bound
+		eval echo '${'"$escaped_key"'#hash}'
+	fi
 }
 
 visualize() {
