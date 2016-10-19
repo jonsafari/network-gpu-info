@@ -19,6 +19,7 @@ cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 loop=''
 timeout=2
 num_regex='^[0-9]+$'
+tmpfile='/tmp/network-gpu-info'
 
 ### Process command-line args
 ### If not enough arguments, die
@@ -83,9 +84,15 @@ hostname_unescape() {
 # Portable hash table in bourne shell
 # Bash 4 natively supports hash tables
 # https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
-hput() {
+hformat() {
+	# $1 is hash table
+	# $2 is key (hostname)
+	# $3 is value
 	escaped_hostname=$(echo $2 | hostname_escape )
-	eval "$1"__"$escaped_hostname"='$3'
+	echo "$1"__"$escaped_hostname"="'$3'"
+}
+hput() {
+	eval $(hformat $1 $2 $3)
 }
 
 hget() {
@@ -97,8 +104,6 @@ visualize() {
 	stats=$1
 	shift
 	hosts=$*
-	#host=$1
-	#card_info=$2
 
 	for host in $hosts; do
 		card_info=$(hget $stats $host)
@@ -170,19 +175,21 @@ get_stats() {
 
 	for host in $hosts; do
 		if [ $host = 'localhost' ]; then # Don't bother with SSH for localhost
-			card_info=$($cmd)
+			{ card_info=$($cmd) && hformat "$stats" "$host" "$card_info" >> $tmpfile; } &
 		else
-			card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd)
+			{ card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd) &&  hformat "$stats" "$host" "$card_info" >> $tmpfile; } &
 		fi
-		#visualize "$host" "$card_info"
-		hput "$stats" "$host" "$card_info"
 	done
+	wait
+	. $tmpfile
+	> $tmpfile # truncate file
 }
 
 
 # Main
 hosts=$(get_hosts $hosts_arg)
 # Do the following once (in the absence of a do-while loop in sh)
+touch $tmpfile
 get_stats stats $hosts
 visualize stats $hosts
 
@@ -191,7 +198,9 @@ while [ $loop ]; do
 	echo 'ctrl-c to quit' >&2
 	tput sgr0 # Reset it to normal colors
 	sleep $loop
-	clear
 	get_stats stats $hosts
+	clear
 	visualize stats $hosts
 done
+
+\rm $tmpfile
