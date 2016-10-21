@@ -49,7 +49,6 @@ is to refresh every 5 seconds.  You can change this by adding an integer: `--loo
 There is a **`--timeout`** option to change the default connection timeout (2 seconds).
 
 ## Todo
-- Concurrent queries
 - Sorting output by utilization
 - OpenCL support
 
