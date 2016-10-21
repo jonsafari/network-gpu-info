@@ -176,15 +176,15 @@ get_stats() {
 	hosts=$*
 
 	for host in $hosts; do
+		# Sort buffers output until EOF, to reduce race conditions
 		if [ $host = 'localhost' ]; then # Don't bother with SSH for localhost
-			{ card_info=$($cmd) && hformat "$stats" "$host" "$card_info" >> $tmpfile; } &
+			{ printf ${stats}__${host}=\'; $cmd | tr '\n' ' ' && printf "'\n"; } | sort &
 		else
-			{ card_info=$(ssh -n -o ConnectTimeout=$timeout  $host $cmd) &&  hformat "$stats" "$host" "$card_info" >> $tmpfile; } &
+			{ \ssh -n -o ConnectTimeout=$timeout  $host "printf ${stats}__${host}=\'; $cmd" | tr '\n' ' ' && printf "'\n"; } | sort &
 		fi
-	done
+	done | hostname_escape > $tmpfile
 	wait
 	. $tmpfile
-	> $tmpfile # truncate file
 }
 
 
