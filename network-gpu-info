@@ -73,12 +73,12 @@ fi
 hostname_escape() {
 	# We're using a Posix-shell compliant hash table based on variables, so we
 	# need to escape '@' and '.' in hostnames.
-	sed 's/\./__dot__/g; s/@/__at__/g'
+	sed 's/\./__dot__/g; s/@/__at__/g; s/-/__hyphen__/g'
 }
 
 hostname_unescape() {
 	# See docs in hostname_escape()
-	sed 's/__dot__/./g; s/__at__/@/g'
+	sed 's/__dot__/./g; s/__at__/@/g; s/__hyphen__/-/g'
 }
 
 # Portable hash table in bourne shell
