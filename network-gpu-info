@@ -10,6 +10,7 @@ usage='Usage:
 
 Options:
   -l, --loop [n]     Continuously display results every n seconds (default: 5)
+      --sort         Sort hostnames before output
       --timeout <n>  Set SSH timeout to n seconds (default: 2)
   -h, --help         Show this help info
 '
@@ -19,9 +20,8 @@ nv_cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 cl_cmd="tbd"
 cmd=${nv_cmd}
 loop=''
+sorted=''
 timeout=2
-num_regex='^[0-9]+$'
-tmpfile='/tmp/network-gpu-info'
 
 ### Process command-line args
 ### If not enough arguments, die
@@ -44,6 +44,10 @@ while [ $# -ge 1 ]; do
 				shift;;
 		esac
         ;;
+	--sort)
+		sorted=1
+		shift
+		;;
 	--timeout)
 		timeout=$2
 		shift 2
@@ -72,52 +76,17 @@ if test -t 1; then
 fi
 
 
-hostname_escape() {
-	# We're using a Posix-shell compliant hash table based on variables, so we
-	# need to escape '@' and '.' in hostnames.
-	sed 's/\./__dot__/g; s/@/__at__/g; s/-/__hyphen__/g'
-}
-
-hostname_unescape() {
-	# See docs in hostname_escape()
-	sed 's/__dot__/./g; s/__at__/@/g; s/__hyphen__/-/g'
-}
-
-# Portable hash table in bourne shell
-# Bash 4 natively supports hash tables
-# https://stackoverflow.com/questions/1494178/how-to-define-hash-tables-in-bash
-hformat() {
-	# $1 is hash table
-	# $2 is key (hostname)
-	# $3 is value
-	escaped_hostname=$(echo $2 | hostname_escape )
-	echo "$1"__"$escaped_hostname"="'$3'"
-}
-hput() {
-	eval $(hformat $1 $2 $3)
-}
-
-hget() {
-	escaped_key=${1}__$(echo $2 | hostname_escape)
-	if [ ! -z ${escaped_key+x} ]; then  # ensure that variable is bound
-		eval echo '${'"$escaped_key"'#hash}'
-	fi
-}
-
 visualize() {
-	stats=$1
-	shift
-	hosts=$*
+	while IFS='=' read host card_info; do
+		card_info=$(echo $card_info | tr -d "'") # remove single-quotes; temp
 
-	for host in $hosts; do
-		card_info=$(hget $stats $host)
 		if [ $is_terminal ]; then
-	
+
 			# Print host
 			tput bold
 			echo "$host:"
 			tput sgr0 # Reset it to normal colors
-	
+
 			card_num=0
 			for card in $card_info; do
 				printf " %2s %3s%%: [" $card_num $card
@@ -173,38 +142,30 @@ get_hosts() {
 
 
 get_stats() {
-	stats=$1
-	shift
 	hosts=$*
 
 	for host in $hosts; do
 		# Sort buffers output until EOF, to reduce race conditions
 		if [ $host = 'localhost' ]; then # Don't bother with SSH for localhost
-			{ printf ${stats}__${host}=\'; $cmd | tr '\n' ' ' && printf "'\n"; } | sort &
+			{ printf ${host}=\'; $cmd | tr '\n' ' ' && printf "'\n"; } | sort &
 		else
-			{ \ssh -n -o ConnectTimeout=$timeout  $host "printf ${stats}__${host}=\'; $cmd" | tr '\n' ' ' && printf "'\n"; } | sort &
+			{ \ssh -n -o ConnectTimeout=$timeout  $host "printf ${host}=\'; $cmd" | tr '\n' ' ' && printf "'\n"; } | sort &
 		fi
-	done | hostname_escape > $tmpfile
-	wait
-	. $tmpfile
+	done | \
+		( [ ! "${sorted}" ] && cat || sort ) # optionally pipe stdout to sort, if --sort is set
 }
 
 
 # Main
 hosts=$(get_hosts $hosts_arg)
 # Do the following once (in the absence of a do-while loop in sh)
-touch $tmpfile
-get_stats stats $hosts
-visualize stats $hosts
+get_stats $hosts | visualize
 
 while [ $loop ]; do
+	clear
+	get_stats $hosts | visualize
 	tput setaf 8 # Grey
 	echo 'ctrl-c to quit' >&2
 	tput sgr0 # Reset it to normal colors
 	sleep $loop
-	get_stats stats $hosts
-	clear
-	visualize stats $hosts
 done
-
-\rm $tmpfile
