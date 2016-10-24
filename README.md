@@ -53,7 +53,9 @@ There is a **`--timeout`** option to change the default connection timeout (2 se
 You can enable hostname autocompletion for this script, so that it suggests hostnames to
 connect to.  Just add something like the following to your `~/.bashrc` :
 
-    complete -F _ssh ./network-gpu-info
+    complete -F _ssh -f -o plusdirs ./network-gpu-info
+
+Don't forget to reload it: `source ~/.bashrc` .
 
 
 ## Todo
