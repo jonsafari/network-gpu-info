@@ -15,7 +15,9 @@ Options:
 '
 
 # Defaults
-cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+nv_cmd="nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+cl_cmd="tbd"
+cmd=${nv_cmd}
 loop=''
 timeout=2
 num_regex='^[0-9]+$'
@@ -132,11 +134,11 @@ visualize() {
 					printf "|"
 				done
 				tput sgr0 # Reset it to normal colors
+
 				# Complementing spaces
-				for tick in $(seq $card 1 50); do
-					printf " "
-				done
-				printf "]\n"
+				complement=$(( 50 - $card ))
+				printf "%${complement}s]\n"
+
 				card_num=$((card_num+1))
 			done
 			printf "\n"
