@@ -48,6 +48,14 @@ is to refresh every 5 seconds.  You can change this by adding an integer: `--loo
 
 There is a **`--timeout`** option to change the default connection timeout (2 seconds).
 
+
+## Hostname Autocompletion
+You can enable hostname autocompletion for this script, so that it suggests hostnames to
+connect to.  Just add something like the following to your `~/.bashrc` :
+
+    complete -F _ssh ./network-gpu-info
+
+
 ## Todo
 - Concurrent queries
 - Sorting output by utilization
