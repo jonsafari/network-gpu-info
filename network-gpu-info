@@ -94,11 +94,11 @@ visualize() {
 				printf "|"
 			done
 			tput sgr0 # Reset it to normal colors
+
 			# Complementing spaces
-			for tick in $(seq $card 1 50); do
-				printf " "
-			done
-			printf "]\n"
+			complement=$(( 50 - $card ))
+			printf "%${complement}s]\n"
+
 			card_num=$((card_num+1))
 		done
 		printf "\n"
