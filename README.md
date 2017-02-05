@@ -59,7 +59,7 @@ Don't forget to reload it: `source ~/.bashrc` .
 
 
 ## Todo
-- Concurrent queries
+- Concurrent queries: currently implemented in the `par` branch
 - Sorting output by utilization
 - OpenCL support
 
